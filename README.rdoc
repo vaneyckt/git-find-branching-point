@@ -1,0 +1,22 @@
+== Introduction
+A small Ruby script that helps you find the branching point between two git branches.
+
+== Getting Started
+First you'll need to install the git-find-branching-point gem, as this will download the other gems required to run this script:
+
+  gem install git-find-branching-point
+
+Next you'll want to download the script file from the /lib folder and make it executable by running:
+
+  chmod u+x git-find-branching-point
+
+You can now run it by calling the script by its full path name. You could also put the script somewhere in your $PATH and run it by typing 'git-find-branching-point'.
+
+== Example
+Finding all the ways that a given commit could have made it into a particular branch is as easy as running
+
+    git-find-branching-point --branch <your first branch name here> --branched-from <your second branch name here>
+
+You can also get a list of all available branches by running
+
+     git-find-branching-point --show-branches

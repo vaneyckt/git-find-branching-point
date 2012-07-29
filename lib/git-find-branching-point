@@ -1,0 +1,71 @@
+#!/usr/bin/env ruby
+
+require 'set'
+require 'grit'
+require 'trollop'
+
+def describe(commit)
+  "#{commit.committed_date}  #{commit.sha}  #{commit.message.strip.split("\n").first}  #{commit.committer}\n"
+end
+
+def get_branches(repo)
+  branches = []
+  branches += repo.branches.map(&:name)
+  branches += repo.remotes.map(&:name)
+  branches.delete_if { |branch| branch == 'origin/HEAD' }
+  branches
+end
+
+def find_branching_point(repo, branch, branched_from)
+  branches = [branch, branched_from]
+  sha_to_branches = Hash.new { |h, k| h[k] = Set.new }
+
+  branches.each_with_index do |b, i|
+    puts "Indexing branch (#{i+1}/#{branches.length}): #{b}"
+    commit = repo.commits(b).first
+    while !commit.nil?
+      sha_to_branches[commit.sha] << b
+      commit = commit.parents.first
+    end
+  end
+
+  puts "Looking for branching point."
+  commit = repo.commits(branch).first
+  while !commit.nil? and !sha_to_branches[commit.sha].include?(branched_from)
+    commit = commit.parents.first
+  end
+
+  if !commit.nil?
+    puts "Found branching point."
+    puts describe(commit)
+  else
+    puts "No branching point was found."
+  end
+end
+
+opts = Trollop::options do
+  opt :branch, "Specify the branch you're interested in.", :type => :string
+  opt :branched_from, "Specify the branch that your branch of interest was branched from.", :type => :string
+  opt :show_branches, "Including this parameter will cause all available branches to be listed."
+end
+
+git_directory = `git rev-parse --show-toplevel`
+repo = Grit::Repo.new(git_directory.chomp!)
+
+branches = get_branches(repo)
+if opts[:show_branches]
+  puts "Available branches: #{branches.join(', ')}"
+  exit(0)
+end
+
+if !opts[:branch].nil? and !branches.include?(opts[:branch])
+  puts "Error: the specified branch of interest does not exist. Remember that you can list all available branches with the --show-branches parameter."
+  exit(-1)
+end
+
+if !opts[:branched_from].nil? and !branches.include?(opts[:branched_from])
+  puts "Error: the specified branch that your branch of interest was branched from does not exist. Remember that you can list all available branches with the --show-branches parameter."
+  exit(-1)
+end
+
+find_branching_point(repo, opts[:branch], opts[:branched_from])
