@@ -13,10 +13,10 @@ Next you'll want to download the script file from the /lib folder and make it ex
 You can now run it by calling the script by its full path name. You could also put the script somewhere in your $PATH and run it by typing 'git-find-branching-point'.
 
 == Example
-Finding all the ways that a given commit could have made it into a particular branch is as easy as running
+Finding the branching point between two branches is as easy as running:
 
     git-find-branching-point --branch <your first branch name here> --branched-from <your second branch name here>
 
-You can also get a list of all available branches by running
+You can also get a list of all available branches by running:
 
      git-find-branching-point --show-branches
